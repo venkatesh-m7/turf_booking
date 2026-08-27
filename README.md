@@ -415,14 +415,13 @@ The workflow at `.github/workflows/ci.yml` runs on pushes and pull requests targ
 
 ## Deploying on Render
 
-This repository includes [render.yaml](render.yaml) with the Render service configuration. The correct start
-command is:
+Render is deployed through the GitHub Actions deploy stage. The correct Render start command is:
 
 ```text
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-Use this build command:
+Configure this Render build command:
 
 ```text
 pip install -r requirements.txt
@@ -430,6 +429,10 @@ pip install -r requirements.txt
 
 Render environment variables must include `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`,
 `ACCESS_TOKEN_EXPIRE_MINUTES`, and `CANCELLATION_CUTOFF_HOURS`.
+
+Create a Render Deploy Hook and add its URL to the GitHub repository secret named
+`RENDER_DEPLOY_HOOK_URL`. The workflow runs tests first and triggers the hook only after a successful push to
+`main`. Pull requests run tests but never deploy.
 
 Do not use `localhost` in `DATABASE_URL` on Render. `localhost` refers to the Render web service, not your Windows
 computer. Use a hosted PostgreSQL connection string, such as the internal connection URL from a Render PostgreSQL
