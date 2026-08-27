@@ -412,3 +412,25 @@ The workflow at `.github/workflows/ci.yml` runs on pushes and pull requests targ
 - Add a formal admin-management workflow instead of changing roles manually.
 - Confirmed booking slots use a database-level partial unique index, while the application pre-check provides the expected user-facing error for normal duplicate requests.
 - Use a migration tool such as Alembic when applying schema or index changes to an existing production database.
+
+## Deploying on Render
+
+This repository includes [render.yaml](render.yaml) with the Render service configuration. The correct start
+command is:
+
+```text
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Use this build command:
+
+```text
+pip install -r requirements.txt
+```
+
+Render environment variables must include `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`,
+`ACCESS_TOKEN_EXPIRE_MINUTES`, and `CANCELLATION_CUTOFF_HOURS`.
+
+Do not use `localhost` in `DATABASE_URL` on Render. `localhost` refers to the Render web service, not your Windows
+computer. Use a hosted PostgreSQL connection string, such as the internal connection URL from a Render PostgreSQL
+database. URL-encode special characters in the database password.
