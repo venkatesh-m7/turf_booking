@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 
 from app.database import Base, engine
 from app.logging_config import setup_logging
-from app.routers import auth_router, booking_router, turf_router
+from app.routers import admin_router, auth_router, booking_router, turf_router
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -34,3 +34,4 @@ def root() -> dict[str, str]:
 app.include_router(auth_router.router)
 app.include_router(turf_router.router)
 app.include_router(booking_router.router)
+app.include_router(admin_router.router)
