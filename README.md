@@ -380,7 +380,12 @@ The application writes request logs and SQLAlchemy engine SQL logs to:
 app.log
 ```
 
-The log file is ignored by Git. Do not enable SQL logging in production if SQL statements could expose sensitive data.
+The application also writes logs to the terminal. `app.log` uses a rotating handler capped at approximately 5 MB,
+keeping up to three backup files (`app.log.1`, `app.log.2`, and `app.log.3`). Set `LOG_LEVEL=DEBUG` for more
+development detail or `LOG_LEVEL=WARNING` for less production noise. The default is `INFO`.
+
+Log files and rotated backups are ignored by Git. Do not enable SQL logging in production if SQL statements could
+expose sensitive data.
 
 ## CI
 

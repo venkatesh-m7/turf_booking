@@ -10,13 +10,13 @@ from app.models import Booking, Review, Turf, User
 
 USERS = [
     {
-        "email": "admin@example.com",
-        "password": "AdminPassword123!",
+        "email": "admin@gmail.com",
+        "password": "admin123",
         "role": "admin",
     },
     {
-        "email": "customer@example.com",
-        "password": "CustomerPassword123!",
+        "email": "customer1@gmail.com",
+        "password": "customer1123",
         "role": "customer",
     },
 ]
@@ -76,14 +76,13 @@ def seed() -> None:
     db = SessionLocal()
     try:
         users = {user_data["email"]: get_or_create_user(db, user_data) for user_data in USERS}
-        admin = users["admin@example.com"]
-        customer = users["customer@example.com"]
+        admin = users["admin@gmail.com"]
+        customer = users["customer1@gmail.com"]
         turfs = [get_or_create_turf(db, turf_data, admin.id) for turf_data in TURFS]
 
         booking = (
             db.query(Booking)
             .filter(
-                Booking.user_id == customer.id,
                 Booking.turf_id == turfs[0].id,
                 Booking.booking_date == "2099-06-15",
                 Booking.start_time == "18:00",
@@ -119,8 +118,8 @@ def seed() -> None:
 
         db.commit()
         print("Seed data created or already present.")
-        print("Admin login: admin@example.com / AdminPassword123!")
-        print("Customer login: customer@example.com / CustomerPassword123!")
+        print("Admin login: admin@gmail.com / admin123")
+        print("Customer login: customer1@gmail.com / customer1123")
     except Exception:
         db.rollback()
         raise

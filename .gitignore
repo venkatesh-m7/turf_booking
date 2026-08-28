@@ -15,6 +15,7 @@ __pycache__/
 
 # Log files
 *.log
+*.log.*
 app.log
 
 # Virtual environments
