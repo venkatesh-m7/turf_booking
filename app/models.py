@@ -20,9 +20,6 @@ class User(Base):
 	bookings: Mapped[list["Booking"]] = relationship(
 		back_populates="user", cascade="all, delete-orphan"
 	)
-	waitlist_entries: Mapped[list["WaitlistEntry"]] = relationship(
-		back_populates="user", cascade="all, delete-orphan"
-	)
 	reviews: Mapped[list["Review"]] = relationship(
 		back_populates="user", cascade="all, delete-orphan"
 	)
@@ -47,9 +44,6 @@ class Turf(Base):
 		back_populates="turf", cascade="all, delete-orphan"
 	)
 	added_by_admin: Mapped[User | None] = relationship(foreign_keys=[added_by_admin_id])
-	waitlist_entries: Mapped[list["WaitlistEntry"]] = relationship(
-		back_populates="turf", cascade="all, delete-orphan"
-	)
 	reviews: Mapped[list["Review"]] = relationship(
 		back_populates="turf", cascade="all, delete-orphan"
 	)
@@ -85,37 +79,6 @@ class Booking(Base):
 
 	user: Mapped[User] = relationship(back_populates="bookings")
 	turf: Mapped[Turf] = relationship(back_populates="bookings")
-
-
-class WaitlistEntry(Base):
-	__tablename__ = "waitlist_entries"
-	__table_args__ = (
-		Index(
-			"uq_active_waitlist_entry",
-			"user_id",
-			"turf_id",
-			"booking_date",
-			"start_time",
-			"end_time",
-			unique=True,
-			sqlite_where=text("status = 'waiting'"),
-			postgresql_where=text("status = 'waiting'"),
-		),
-	)
-
-	id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-	user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
-	turf_id: Mapped[int] = mapped_column(ForeignKey("turfs.id"), nullable=False, index=True)
-	booking_date: Mapped[str] = mapped_column(String(10), nullable=False)
-	start_time: Mapped[str] = mapped_column(String(5), nullable=False)
-	end_time: Mapped[str] = mapped_column(String(5), nullable=False)
-	status: Mapped[str] = mapped_column(String(30), default="waiting", nullable=False)
-	created_at: Mapped[datetime] = mapped_column(
-		DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
-	)
-
-	user: Mapped[User] = relationship(back_populates="waitlist_entries")
-	turf: Mapped[Turf] = relationship(back_populates="waitlist_entries")
 
 
 class Review(Base):

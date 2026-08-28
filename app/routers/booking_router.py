@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_user
 from app.config import settings
 from app.database import get_db
-from app.models import Booking, Turf, User, WaitlistEntry
-from app.schemas import BookingCreate, BookingResponse, WaitlistResponse
+from app.models import Booking, Turf, User
+from app.schemas import BookingCreate, BookingResponse
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -70,54 +70,6 @@ def create_booking(
 	return booking
 
 
-@router.post("/waitlist", response_model=WaitlistResponse, status_code=201)
-def join_waitlist(
-	booking_data: BookingCreate,
-	db: Annotated[Session, Depends(get_db)],
-	current_user: Annotated[User, Depends(get_current_user)],
-) -> WaitlistEntry:
-	turf = db.get(Turf, booking_data.turf_id)
-	if turf is None:
-		raise HTTPException(status_code=404, detail="Turf not found")
-	start_time = booking_data.start_time
-	end_time = booking_data.end_time
-	assert start_time is not None and end_time is not None
-	if not db.query(Booking).filter(
-		Booking.turf_id == turf.id,
-		Booking.booking_date == booking_data.booking_date,
-		Booking.start_time == start_time,
-		Booking.end_time == end_time,
-		Booking.status == "confirmed",
-	).first():
-		raise HTTPException(status_code=400, detail="This slot is available; book it directly")
-	entry = WaitlistEntry(
-		user_id=current_user.id,
-		turf_id=turf.id,
-		booking_date=booking_data.booking_date,
-		start_time=start_time,
-		end_time=end_time,
-	)
-	db.add(entry)
-	try:
-		db.commit()
-	except IntegrityError as exc:
-		db.rollback()
-		raise HTTPException(status_code=400, detail="You are already on this waitlist") from exc
-	db.refresh(entry)
-	return entry
-
-
-@router.get("/waitlist/me", response_model=list[WaitlistResponse])
-def get_my_waitlist(
-	db: Annotated[Session, Depends(get_db)],
-	current_user: Annotated[User, Depends(get_current_user)],
-) -> list[WaitlistEntry]:
-	return db.query(WaitlistEntry).filter(
-		WaitlistEntry.user_id == current_user.id,
-		WaitlistEntry.status == "waiting",
-	).order_by(WaitlistEntry.created_at).all()
-
-
 @router.get("/me", response_model=list[BookingResponse])
 def get_my_bookings(
 	db: Annotated[Session, Depends(get_db)],
@@ -148,24 +100,6 @@ def cancel_booking(
 	if booking_start - datetime.now() < timedelta(hours=settings.CANCELLATION_CUTOFF_HOURS):
 		raise HTTPException(status_code=400, detail="Bookings cannot be cancelled within the cutoff window")
 	booking.status = "cancelled"
-	waitlist_entry = db.query(WaitlistEntry).filter(
-		WaitlistEntry.turf_id == booking.turf_id,
-		WaitlistEntry.booking_date == booking.booking_date,
-		WaitlistEntry.start_time == booking.start_time,
-		WaitlistEntry.end_time == booking.end_time,
-		WaitlistEntry.status == "waiting",
-	).order_by(WaitlistEntry.created_at).first()
-	if waitlist_entry:
-		db.add(Booking(
-			user_id=waitlist_entry.user_id,
-			turf_id=booking.turf_id,
-			booking_date=booking.booking_date,
-			slot_time=booking.slot_time,
-			start_time=booking.start_time,
-			end_time=booking.end_time,
-			total_price=booking.total_price,
-		))
-		waitlist_entry.status = "fulfilled"
 	db.commit()
 	db.refresh(booking)
 	return booking

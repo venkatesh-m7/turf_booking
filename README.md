@@ -12,12 +12,12 @@ A modular FastAPI backend for managing turfs, hourly slots, users, and bookings.
 - Operating hours and one clear hourly rate per turf
 - Computed booking totals
 - Booking owner cancellation
-- Cancellation cutoff and waitlist promotion
+- Cancellation cutoff
 - Customer ratings and reviews
 - Admin booking oversight and analytics
 - SQLAlchemy model relationships
 - Request and SQL query logging to `app.log`
-- Pytest coverage for authentication, turf, booking, waitlist, reviews, and analytics flows
+- Pytest coverage for authentication, turf, booking, reviews, and analytics flows
 - GitHub Actions CI on pushes and pull requests to `main`
 
 ## Project Structure
@@ -254,8 +254,8 @@ There is no public admin-promotion endpoint. To create an administrator, update 
 
 #### `PATCH /turfs/{turf_id}` and `DELETE /turfs/{turf_id}`
 
-Admin-only endpoints for updating or deleting a turf. Deleting a turf also removes its related bookings,
-waitlist entries, and reviews through the configured SQLAlchemy relationships.
+Admin-only endpoints for updating or deleting a turf. Deleting a turf also removes its related bookings and
+reviews through the configured SQLAlchemy relationships.
 
 #### `POST /turfs/{turf_id}/reviews`
 
@@ -344,17 +344,7 @@ Responses:
 - `403`: booking belongs to another user
 - `404`: booking does not exist
 
-Cancellation is rejected inside the configured cutoff window (two hours by default). When a cancellation
-opens a slot with a waiting customer, the oldest waiting entry is promoted to a confirmed booking.
-
-#### `POST /bookings/waitlist`
-
-Join the waitlist for a currently occupied slot. Use the same `turf_id`, `booking_date`, and time fields as
-booking creation.
-
-#### `GET /bookings/waitlist/me`
-
-List the authenticated user's active waitlist entries.
+Cancellation is rejected inside the configured cutoff window (two hours by default).
 
 ### Administration
 

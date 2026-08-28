@@ -322,39 +322,6 @@ def test_operating_hours_and_hourly_price_are_applied():
 	assert outside_hours.status_code == 400
 
 
-def test_waitlist_entry_is_promoted_after_cancellation():
-	turf = seed_turf()
-	booking_data = {
-		"turf_id": turf.id,
-		"booking_date": "2026-10-03",
-		"start_time": "18:00",
-		"end_time": "19:00",
-	}
-	with TestClient(app) as client:
-		register_user(client, "waitlist-owner@example.com")
-		owner_token = login_user(client, "waitlist-owner@example.com")
-		headers = {"Authorization": f"Bearer {owner_token}"}
-		booking_response = client.post("/bookings/", headers=headers, json=booking_data)
-		register_user(client, "waitlist-customer@example.com")
-		waitlist_token = login_user(client, "waitlist-customer@example.com")
-		waitlist_response = client.post(
-			"/bookings/waitlist",
-			headers={"Authorization": f"Bearer {waitlist_token}"},
-			json=booking_data,
-		)
-		cancel_response = client.patch(
-			f"/bookings/{booking_response.json()['id']}/cancel", headers=headers
-		)
-		my_bookings_response = client.get(
-			"/bookings/me", headers={"Authorization": f"Bearer {waitlist_token}"}
-		)
-
-	assert waitlist_response.status_code == 201
-	assert cancel_response.status_code == 200
-	assert len(my_bookings_response.json()) == 1
-	assert my_bookings_response.json()[0]["user_id"] != booking_response.json()["user_id"]
-
-
 def test_customer_can_review_booked_turf_once():
 	turf = seed_turf()
 	with TestClient(app) as client:

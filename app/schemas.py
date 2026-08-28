@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime
 from decimal import Decimal
 import re
 
@@ -109,18 +109,6 @@ class BookingResponse(BookingCreate):
 	status: str
 	total_price: Decimal
 	created_at: datetime
-
-
-class WaitlistResponse(BaseModel):
-	model_config = ConfigDict(from_attributes=True)
-
-	id: int
-	user_id: int
-	turf_id: int
-	booking_date: str
-	start_time: str
-	end_time: str
-	status: str
 
 
 class ReviewCreate(BaseModel):
